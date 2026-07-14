@@ -1,0 +1,43 @@
+name: Release
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+# Images are published to the Rancher Prime registry only.
+# Release tags must include build metadata, e.g. v1.2.3-build20250101
+jobs:
+  release-cilium-operator-aws:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Read secrets
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+
+    - name: Build and push multi-arch hardened-cilium-operator-aws image to Prime
+      uses: rancher/ecm-distro-tools/actions/publish-image@49656efa72e90062a70fac1a85ad121f4873a6a0 # v0.74.4
+      with:
+        image: hardened-cilium-operator-aws
+        make-target: push-image
+        platforms: linux/amd64,linux/arm64
+        tag: ${{ github.event.release.tag_name }}
+        push-to-public: false
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}

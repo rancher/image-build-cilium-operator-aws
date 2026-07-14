@@ -1,0 +1,48 @@
+---
+name: "Update cilium version"
+
+sources:
+  upstream:
+    name: Get cilium version
+    kind: githubrelease
+    spec:
+      owner: cilium
+      repository: cilium
+      token: '{{ requiredEnv .github.token }}'
+      typefilter:
+        release: true
+        draft: false
+        prerelease: false
+      versionfilter:
+        kind: semver
+
+targets:
+  makefile:
+    name: "Bump to latest cilium version in Makefile"
+    kind: file
+    scmid: default
+    disablesourceinput: true
+    spec:
+      file: Makefile
+      matchpattern: '(?m)^TAG \:\= (.*)'
+      replacepattern: 'TAG := {{ source "upstream" }}$$(BUILD_META)'
+
+scms:
+  default:
+    kind: github
+    spec:
+      token: '{{ requiredEnv .github.token }}'
+      username: '{{ .github.username }}'
+      user: '{{ .github.username }}'
+      email: '{{ .github.email }}'
+      owner: '{{ .github.owner }}'
+      repository: '{{ .github.repository }}'
+      branch: '{{ .github.branch }}'
+
+actions:
+  default:
+    title: 'Bump cilium version to {{ source "upstream" }}'
+    kind: github/pullrequest
+    spec:
+      automerge: false
+    scmid: default
