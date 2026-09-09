@@ -29,7 +29,7 @@ jobs:
           secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
 
     - name: Build and push multi-arch hardened-cilium-operator-aws image to Prime
-      uses: rancher/ecm-distro-tools/actions/publish-image@e9b6789032dbe9e289ccc6f7532da8fd349922b3 # v0.75.0
+      uses: rancher/ecm-distro-tools/actions/publish-image@086cd2f90ed82712e45701441a00e59b95b578c1 # v0.77.1
       with:
         image: hardened-cilium-operator-aws
         make-target: push-image
